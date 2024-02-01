@@ -122,7 +122,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
                                'targets': {k: v.detach().cpu() for k, v in t.items()}})
         
         if len(save_dicts) == 1000:
-            torch.save(save_dicts, f'detr_outputs_part{i}.pth')
+            torch.save(save_dicts, os.path.join(output_dir, f'detr_outputs_part{i}.pth'))
             del save_dicts
             save_dicts = []
             i += 1
@@ -139,6 +139,10 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
                 res_pano[i]["file_name"] = file_name
 
             panoptic_evaluator.update(res_pano)
+        
+        break
+
+    torch.save(save_dicts, f'detr_outputs_part{i}.pth')
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()

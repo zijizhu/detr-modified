@@ -1,5 +1,9 @@
 **DE⫶TR**: End-to-End Object Detection with Transformers
 ========
+# Extract intermediate outputs
+```bash
+python main.py --inference_val --batch_size 8 --no_aux_loss --resume detr-r50-e632da11.pth --coco_path coco --device cuda --output_dir outputs
+```
 
 [![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://opensource.fb.com/support-ukraine)
 
