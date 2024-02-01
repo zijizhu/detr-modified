@@ -85,6 +85,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             output_dir=os.path.join(output_dir, "panoptic_eval"),
         )
 
+    i = 1
     save_dicts = []
     for samples, targets in metric_logger.log_every(data_loader, 10, header):
         samples = samples.to(device)
@@ -111,8 +112,20 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             target_sizes = torch.stack([t["size"] for t in targets], dim=0)
             results = postprocessors['segm'](results, outputs, orig_target_sizes, target_sizes)
         res = {target['image_id'].item(): output for target, output in zip(targets, results)}
-        # Save outputs
-        save_dicts.append({'hs': hs, 'outputs': outputs, 'res': res, 'targets': targets})
+
+        ##### Save outputs #####
+        pred_logits, pred_boxes = outputs['pred_logits'].detach().cpu(), outputs['pred_logits'].detach().cpu()
+        for h, l, b, t in zip(hs[-1], pred_logits, pred_boxes, targets):
+            save_dicts.append({'decoder_outputs': h.detach().cpu(),
+                               'pred_logits': l,
+                               'pred_boxes': b,
+                               'targets': {k: v.detach().cpu() for k, v in t.items()}})
+        
+        if len(save_dicts) == 1000:
+            torch.save(save_dicts, f'detr_outputs_part{i}.pth')
+            del save_dicts
+            save_dicts = []
+            i += 1
 
         if coco_evaluator is not None:
             coco_evaluator.update(res)
@@ -152,4 +165,4 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         stats['PQ_all'] = panoptic_res["All"]
         stats['PQ_th'] = panoptic_res["Things"]
         stats['PQ_st'] = panoptic_res["Stuff"]
-    return stats, coco_evaluator, save_dicts
+    return stats, coco_evaluator

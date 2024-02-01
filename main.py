@@ -99,6 +99,9 @@ def get_args_parser():
     parser.add_argument('--world_size', default=1, type=int,
                         help='number of distributed processes')
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
+
+    parser.add_argument('--inference_save', action='store_true', help='Run inference on training set and save results')
+    parser.add_argument('--inference_val', action='store_true', help='Run inference on validation set and save results')
     return parser
 
 
@@ -156,6 +159,12 @@ def main(args):
                                    collate_fn=utils.collate_fn, num_workers=args.num_workers)
     data_loader_val = DataLoader(dataset_val, args.batch_size, sampler=sampler_val,
                                  drop_last=False, collate_fn=utils.collate_fn, num_workers=args.num_workers)
+    
+    if args.inference_train:
+        sampler_train = torch.utils.data.SequentialSampler(dataset_train)
+        batch_sampler_train = torch.utils.data.BatchSampler(sampler_train, args.batch_size, drop_last=True)
+        data_loader_train = DataLoader(dataset_train, batch_sampler=batch_sampler_train,
+                                       collate_fn=utils.collate_fn, num_workers=args.num_workers)
 
     if args.dataset_file == "coco_panoptic":
         # We also evaluate AP during panoptic training, on original coco DS
@@ -181,10 +190,23 @@ def main(args):
             lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
             args.start_epoch = checkpoint['epoch'] + 1
 
+    ##### Modified for extracting outputs #####
+    if args.inference_save:
+        test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,
+                                              data_loader_train, base_ds, device, args.output_dir)
+        if args.output_dir:
+            utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "inference_train.pth")
+        return
+    elif args.inference_val:
+        test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,
+                                              data_loader_val, base_ds, device, args.output_dir)
+        if args.output_dir:
+            utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "inference_val.pth")
+        return
+
     if args.eval:
-        test_stats, coco_evaluator, save_dicts = evaluate(model, criterion, postprocessors,
-                                                          data_loader_val, base_ds, device, args.output_dir)
-        torch.save(save_dicts, 'detr_outputs.pth')
+        test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,
+                                              data_loader_val, base_ds, device, args.output_dir)
         if args.output_dir:
             utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
         return
