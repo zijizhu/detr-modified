@@ -13,3 +13,5 @@ unzip -qq val2017.zip
 rm val2017.zip
 unzip -qq annotations_trainval2017.zip
 rm annotations_trainval2017.zip
+
+pip install pycocotools
