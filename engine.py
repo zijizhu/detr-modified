@@ -114,18 +114,19 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         res = {target['image_id'].item(): output for target, output in zip(targets, results)}
 
         ##### Save outputs #####
-        pred_logits, pred_boxes = outputs['pred_logits'].detach().cpu(), outputs['pred_boxes'].detach().cpu()
-        for h, l, b, t in zip(hs[-1], pred_logits, pred_boxes, targets):
-            save_dicts.append({'decoder_outputs': h.detach().cpu(),
-                               'pred_logits': l,
-                               'pred_boxes': b,
-                               'targets': {k: v.detach().cpu() for k, v in t.items()}})
+        # Each iteration, outputs is a dict with tensors of [batch_size, ...] as values
+        #                 targets is a list of dict, len(targets) == batch_size
+        batch_size = samples.size(0)
+        save_dicts.append({'h': hs[-1].detach().cpu(),
+                           'outputs': {k: v.detach().cpu() for k, v in outputs.items()},
+                           'targets': [{k: v.detach().cpu() for k, v in t.items()} for t in targets]})
         
         if len(save_dicts) == 1000:
             torch.save(save_dicts, os.path.join(output_dir, f'detr_outputs_part{i}.pth'))
             del save_dicts
             save_dicts = []
-            i += 1
+            i += batch_size
+        ##########
 
         if coco_evaluator is not None:
             coco_evaluator.update(res)
