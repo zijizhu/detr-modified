@@ -116,7 +116,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         ##### Save outputs #####
         # Each iteration, outputs is a dict with tensors of [batch_size, ...] as values
         #                 targets is a list of dict, len(targets) == batch_size
-        batch_size = samples.size(0)
+        batch_size = hs.size(1)
         save_dicts.append({'h': hs[-1].detach().cpu(),
                            'outputs': {k: v.detach().cpu() for k, v in outputs.items()},
                            'targets': [{k: v.detach().cpu() for k, v in t.items()} for t in targets]})
