@@ -192,6 +192,7 @@ def main(args):
         batch_sampler_train = torch.utils.data.BatchSampler(sampler_train, args.batch_size, drop_last=True)
         data_loader_train = DataLoader(dataset_train, batch_sampler=batch_sampler_train,
                                        collate_fn=utils.collate_fn, num_workers=args.num_workers)
+        base_ds = get_coco_api_from_dataset(dataset_train)
         
         test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,
                                               data_loader_train, base_ds, device, args.output_dir)
