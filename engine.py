@@ -85,7 +85,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             output_dir=os.path.join(output_dir, "panoptic_eval"),
         )
 
-    i = 0
+    num_processed = 0
     save_dicts = []
     for samples, targets in metric_logger.log_every(data_loader, 10, header):
         samples = samples.to(device)
@@ -121,9 +121,9 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
                            'outputs': {k: v.detach().cpu() for k, v in outputs.items()},
                            'targets': [{k: v.detach().cpu() for k, v in t.items()} for t in targets]})
         
-        i += batch_size
-        if len(save_dicts) == 2000:
-            torch.save(save_dicts, os.path.join(output_dir, f'detr_outputs_part{i // 2000}.pth'))
+        num_processed += batch_size
+        if num_processed == 2000:
+            torch.save(save_dicts, os.path.join(output_dir, f'detr_outputs_part{num_processed // 2000}.pth'))
             del save_dicts
             save_dicts = []
         ##########
