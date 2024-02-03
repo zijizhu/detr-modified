@@ -114,7 +114,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         res = {target['image_id'].item(): output for target, output in zip(targets, results)}
 
         ##### Save outputs #####
-        pred_logits, pred_boxes = outputs['pred_logits'].detach().cpu(), outputs['pred_logits'].detach().cpu()
+        pred_logits, pred_boxes = outputs['pred_logits'].detach().cpu(), outputs['pred_boxes'].detach().cpu()
         for h, l, b, t in zip(hs[-1], pred_logits, pred_boxes, targets):
             save_dicts.append({'decoder_outputs': h.detach().cpu(),
                                'pred_logits': l,
@@ -142,7 +142,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         
         break
 
-    torch.save(save_dicts, f'detr_outputs_part{i}.pth')
+    torch.save(save_dicts, os.path.join(output_dir, f'detr_outputs_part{i}.pth'))
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
