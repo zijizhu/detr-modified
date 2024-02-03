@@ -122,7 +122,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
                            'targets': [{k: v.detach().cpu() for k, v in t.items()} for t in targets]})
         
         num_processed += batch_size
-        if num_processed == 2000:
+        if num_processed % 2000 == 0:
             torch.save(save_dicts, os.path.join(output_dir, f'detr_outputs_part{num_processed // 2000}.pth'))
             del save_dicts
             save_dicts = []
