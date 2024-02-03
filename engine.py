@@ -85,7 +85,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             output_dir=os.path.join(output_dir, "panoptic_eval"),
         )
 
-    i = 1
+    i = 0
     save_dicts = []
     for samples, targets in metric_logger.log_every(data_loader, 10, header):
         samples = samples.to(device)
