@@ -65,7 +65,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
 
 @torch.no_grad()
-def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, output_dir):
+def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, output_dir, mode=None):
     model.eval()
     criterion.eval()
 
@@ -122,7 +122,10 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
                            'targets': [{k: v.detach().cpu() for k, v in t.items()} for t in targets]})
         
         num_processed += batch_size
-        if num_processed % 2000 == 0:
+        if mode == 'inference_val':
+            if num_processed == 5000:
+                torch.save(save_dicts, os.path.join(output_dir, 'detr_outputs_val.pth'))
+        elif num_processed % 2000 == 0:
             torch.save(save_dicts, os.path.join(output_dir, f'detr_outputs_part{num_processed // 2000}.pth'))
             del save_dicts
             save_dicts = []

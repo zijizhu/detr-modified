@@ -205,7 +205,7 @@ def main(args):
         return
     elif args.inference_val:
         test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,
-                                              data_loader_val, base_ds, device, args.output_dir)
+                                              data_loader_val, base_ds, device, args.output_dir, mode='inference_val')
         if args.output_dir:
             utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "inference_val_cocoeval.pth")
         return
