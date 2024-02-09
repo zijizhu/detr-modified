@@ -112,7 +112,7 @@ class ConvertCocoPolysToMask(object):
         return image, target
 
 
-def make_coco_transforms(image_set):
+def make_coco_transforms(image_set, augmentation=True):
 
     normalize = T.Compose([
         T.ToTensor(),
@@ -121,7 +121,7 @@ def make_coco_transforms(image_set):
 
     scales = [480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800]
 
-    if image_set == 'train':
+    if image_set == 'train' and augmentation:
         return T.Compose([
             T.RandomHorizontalFlip(),
             T.RandomSelect(
@@ -134,8 +134,7 @@ def make_coco_transforms(image_set):
             ),
             normalize,
         ])
-
-    if image_set == 'val' or image_set == 'inference_train' or image_set == 'inference_val':
+    elif image_set == 'val':
         return T.Compose([
             T.RandomResize([800], max_size=1333),
             normalize,
@@ -150,11 +149,9 @@ def build(image_set, args):
     mode = 'instances'
     PATHS = {
         "train": (root / "train2017", root / "annotations" / f'{mode}_train2017.json'),
-        "val": (root / "val2017", root / "annotations" / f'{mode}_val2017.json'),
-        "inference_train": (root / "train2017", root / "annotations" / f'{mode}_train2017.json'),
-        "inference_val": (root / "val2017", root / "annotations" / f'{mode}_val2017.json'),
+        "val": (root / "val2017", root / "annotations" / f'{mode}_val2017.json')
     }
 
     img_folder, ann_file = PATHS[image_set]
-    dataset = CocoDetection(img_folder, ann_file, transforms=make_coco_transforms(image_set), return_masks=args.masks)
+    dataset = CocoDetection(img_folder, ann_file, transforms=make_coco_transforms(image_set, augmentation=args.augmentation), return_masks=args.masks)
     return dataset
