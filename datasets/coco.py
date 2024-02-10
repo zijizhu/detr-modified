@@ -11,7 +11,7 @@ import torch.utils.data
 import torchvision
 from pycocotools import mask as coco_mask
 
-import datasets.transforms as T
+from . import transforms as T
 
 
 class CocoDetection(torchvision.datasets.CocoDetection):
@@ -134,7 +134,7 @@ def make_coco_transforms(image_set, augmentation=True):
             ),
             normalize,
         ])
-    elif image_set == 'val':
+    elif image_set == 'train' or image_set == 'val':
         return T.Compose([
             T.RandomResize([800], max_size=1333),
             normalize,
